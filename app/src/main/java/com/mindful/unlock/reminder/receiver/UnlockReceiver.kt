@@ -28,6 +28,10 @@ class UnlockReceiver : BroadcastReceiver() {
 
         // goAsync() extends the broadcast window beyond onReceive() so the coroutine
         // can finish its IO work before the system reclaims the process.
+        // Note (MVP): a new scope is created per broadcast. Rapid repeated unlocks are
+        // unlikely in practice, and the frequency cooldown in TimeUtils prevents duplicate
+        // notifications even if two coroutines race. A future improvement could use a
+        // shared Application-level scope with job deduplication.
         val pendingResult = goAsync()
 
         CoroutineScope(Dispatchers.IO).launch {
