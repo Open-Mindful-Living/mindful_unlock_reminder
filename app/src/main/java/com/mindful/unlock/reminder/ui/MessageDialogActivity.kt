@@ -32,17 +32,19 @@ class MessageDialogActivity : ComponentActivity() {
         val message = intent.getStringExtra("message") ?: "Take a deep breath."
 
         setContent {
-            MindfulMessageScreen(
-                message = message,
-                onDone = { finish() },
-                onEditMessage = {
-                    val editIntent = Intent(this, MainActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            MaterialTheme {
+                MindfulMessageScreen(
+                    message = message,
+                    onDone = { finish() },
+                    onEditMessage = {
+                        val editIntent = Intent(this, MainActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        }
+                        startActivity(editIntent)
+                        finish()
                     }
-                    startActivity(editIntent)
-                    finish()
-                }
-            )
+                )
+            }
         }
     }
 }

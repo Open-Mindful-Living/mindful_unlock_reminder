@@ -18,15 +18,18 @@ import kotlinx.coroutines.launch
  * NOTE: This is an experimental, notification-first MVP approach. Broadcast-based unlock
  * detection may be restricted on some OEM devices or under aggressive battery optimization.
  * Users may need to exempt the app from battery optimization for reliable delivery.
+ *
+ * v1 intentionally avoids foreground services, overlays, and accessibility permissions.
  */
 class UnlockReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_USER_PRESENT) return
 
-        // Use a coroutine scope on IO to read preferences and post notification without
-        // blocking the main thread. BroadcastReceiver.goAsync() is not used here because
-        // DataStore reads are fast and the scope keeps work alive independently.
+        // goAsync() extends the broadcast window beyond onReceive() so the coroutine
+        // can finish its IO work before the system reclaims the process.
+        val pendingResult = goAsync()
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val repository = UserPreferencesRepository(context.applicationContext)
@@ -48,6 +51,8 @@ class UnlockReceiver : BroadcastReceiver() {
             } catch (e: Exception) {
                 // Gracefully handle any unexpected errors to avoid crashing on unlock
                 e.printStackTrace()
+            } finally {
+                pendingResult.finish()
             }
         }
     }

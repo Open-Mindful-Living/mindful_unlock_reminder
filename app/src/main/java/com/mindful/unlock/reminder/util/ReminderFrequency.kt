@@ -7,6 +7,6 @@ enum class ReminderFrequency(val key: String, val displayName: String) {
 
     companion object {
         fun fromKey(key: String): ReminderFrequency =
-            values().find { it.key == key } ?: EVERY_UNLOCK
+            entries.find { it.key == key } ?: EVERY_UNLOCK
     }
 }

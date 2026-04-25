@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.mindful.unlock.reminder.data.UserPreferences
 import com.mindful.unlock.reminder.data.UserPreferencesRepository
-import com.mindful.unlock.reminder.notification.UnlockReminderNotificationManager
 import com.mindful.unlock.reminder.util.ReminderFrequency
 import kotlinx.coroutines.launch
 
@@ -45,8 +45,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     repository: UserPreferencesRepository,
-    notificationManager: UnlockReminderNotificationManager,
-    notificationPermissionGranted: androidx.compose.runtime.State<Boolean>
+    notificationPermissionGranted: State<Boolean>
 ) {
     val prefs by repository.userPreferencesFlow.collectAsState(initial = UserPreferences())
     val scope = rememberCoroutineScope()
@@ -152,7 +151,7 @@ fun MainScreen(
                     expanded = dropdownExpanded,
                     onDismissRequest = { dropdownExpanded = false }
                 ) {
-                    ReminderFrequency.values().forEach { option ->
+                    ReminderFrequency.entries.forEach { option ->
                         DropdownMenuItem(
                             text = { Text(option.displayName) },
                             onClick = {

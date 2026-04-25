@@ -28,9 +28,13 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"/>
 
+        <!--
+            UnlockReceiver must be exported so the system can deliver ACTION_USER_PRESENT.
+            We validate the action explicitly inside onReceive() for safety.
+        -->
         <receiver
             android:name=".receiver.UnlockReceiver"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT"/>
             </intent-filter>
