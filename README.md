@@ -50,7 +50,15 @@ adb shell am broadcast -a android.intent.action.USER_PRESENT
 
 > **Note:** The ADB broadcast method only works if the app is currently running or recently backgrounded. On some OEM devices you may need to lock/unlock physically for reliable delivery.
 
-## Architecture
+## Why a Persistent Notification?
+
+On Android 14+ (verified on Pixel), the operating system uses the **Cached App Freezer** to suspend app processes in the background. When a process is frozen, its manifest-registered `BroadcastReceiver`s stop receiving system broadcasts — including `ACTION_USER_PRESENT` — even though other apps receive the same broadcast at the same moment.
+
+Running a **foreground service** keeps the app's process resident and prevents the OS from freezing it, which restores reliable broadcast delivery. The service itself does nothing except keep the process alive; `UnlockReceiver` (declared in the manifest) remains the actual broadcast handler.
+
+The persistent notification is posted on a **silent, badge-free channel** (`IMPORTANCE_MIN`) so it sits quietly in the "Silent" section of the notification shade and does not play a sound, vibrate, or show a badge. You can disable or hide it further via long-press → notification settings on that specific notification without affecting reminder delivery (though on some OEMs, stopping the foreground service may re-enable the freezer).
+
+
 
 ```
 app/src/main/java/com/mindful/unlock/reminder/
@@ -60,7 +68,9 @@ app/src/main/java/com/mindful/unlock/reminder/
 ├── notification/
 │   └── UnlockReminderNotificationManager.kt  # Channel creation & notification posting
 ├── receiver/
-│   └── UnlockReceiver.kt              # Listens for ACTION_USER_PRESENT
+│   └── UnlockReceiver.kt              # Listens for ACTION_USER_PRESENT and BOOT_COMPLETED
+├── service/
+│   └── UnlockMonitorService.kt        # Foreground service — keeps process alive on Android 14+
 ├── ui/
 │   ├── MainActivity.kt                # Entry point, permission handling
 │   ├── MainScreen.kt                  # Compose settings screen
@@ -83,16 +93,18 @@ Settings are stored in [DataStore Preferences](https://developer.android.com/top
 
 ## Known Limitations
 
-- **Unlock detection reliability varies** by Android version and device manufacturer. Aggressive battery optimization (e.g., MIUI, EMUI, One UI) may delay or block the `ACTION_USER_PRESENT` broadcast.
-- **Force-stopped apps** will not receive broadcasts on Android 3.1+ until the user manually launches the app again.
-- **No background service** — v1 intentionally avoids foreground services, overlays, and accessibility permissions to stay privacy-friendly and simple.
+- **Unlock detection on OEM devices** — Aggressive battery optimization (e.g., MIUI, EMUI, One UI) may still delay or block `ACTION_USER_PRESENT` on some manufacturer ROMs. Users may need to exempt the app from battery optimization on those devices.
+- **Force-stopped apps** will not receive broadcasts on Android 3.1+ until the user manually launches the app again. The foreground service also cannot be restarted automatically after a force-stop.
+- **Android 14+ Cached App Freezer** — The foreground service (`UnlockMonitorService`) resolves this issue on stock Android 14+ devices (e.g., Pixel). The `ACTION_USER_PRESENT` broadcast is now reliably received while the reminder toggle is enabled.
 - **Android 8.0+ implicit broadcast restrictions** — `ACTION_USER_PRESENT` is on the [explicit broadcast exception list](https://developer.android.com/guide/components/broadcast-exceptions) and is still delivered to manifest-registered receivers.
-- Future versions may explore an optional foreground monitoring service, but v1 stays minimal.
 
 ## Permissions Used
 
 | Permission | Purpose |
 |-----------|---------|
 | `POST_NOTIFICATIONS` | Show the reminder notification (runtime request on Android 13+) |
+| `FOREGROUND_SERVICE` | Required to run `UnlockMonitorService` as a foreground service |
+| `FOREGROUND_SERVICE_SPECIAL_USE` | Required on Android 14+ for foreground services with type `specialUse` |
+| `RECEIVE_BOOT_COMPLETED` | Restart the monitor service automatically after device reboot |
 
 No overlays, no accessibility services, no device admin, no internet access.
