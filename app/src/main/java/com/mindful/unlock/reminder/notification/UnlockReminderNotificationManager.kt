@@ -90,8 +90,8 @@ object UnlockReminderNotificationManager {
             NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
             Log.d(TAG, "Reminder notification posted successfully")
             true
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to post reminder notification: ${e.message}")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Failed to post reminder notification", e)
             false
         }
     }

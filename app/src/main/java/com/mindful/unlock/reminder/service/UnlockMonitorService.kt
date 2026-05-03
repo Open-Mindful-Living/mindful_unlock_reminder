@@ -67,7 +67,7 @@ class UnlockMonitorService : Service() {
         createMonitorChannel()
 
         val notification = buildForegroundNotification()
-        val fgsType = if (Build.VERSION.SDK_INT >= 30) {
+        val fgsType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
         } else {
             0
@@ -97,7 +97,7 @@ class UnlockMonitorService : Service() {
         Log.d(TAG, "onDestroy")
         try {
             unregisterReceiver(unlockReceiver)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
             Log.d(TAG, "Receiver was not registered or already unregistered: ${e.message}")
         }
         job.cancel()
@@ -128,7 +128,7 @@ class UnlockMonitorService : Service() {
                     Log.d(TAG, "Reminder notification was NOT posted — lastReminderShownAt unchanged")
                 }
             } catch (e: Exception) {
-                Log.d(TAG, "Error in handleUnlock: ${e.message}")
+                Log.e(TAG, "Error in handleUnlock", e)
             }
         }
     }

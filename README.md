@@ -60,7 +60,7 @@ Running a **foreground service** keeps the app's process resident and prevents t
 
 The persistent notification is posted on a **silent, badge-free channel** (`IMPORTANCE_MIN`) so it sits quietly in the "Silent" section of the notification shade and does not play a sound, vibrate, or show a badge. You can disable or hide it further via long-press → notification settings on that specific notification without affecting reminder delivery (though on some OEMs, stopping the foreground service may re-enable the freezer).
 
-
+The **reminder notification** (the one that appears on unlock) uses a separate `IMPORTANCE_HIGH` channel with vibration and a visible lock-screen notification so it appears as a heads-up notification.
 
 ```
 app/src/main/java/com/mindful/unlock/reminder/
@@ -94,7 +94,7 @@ If you previously installed an older build of this app, **uninstall and reinstal
 - **Check notification permission.** On Android 13+, the app requires the `POST_NOTIFICATIONS` runtime permission. Make sure it is granted in Settings → Apps → Unlock Reminder → Notifications.
 - **Check battery optimization.** On some OEM devices (MIUI, EMUI, One UI), aggressive battery optimization may stop the foreground service. Exempt the app from battery optimization in Settings → Battery.
 
-
+## Data Model
 
 Settings are stored in [DataStore Preferences](https://developer.android.com/topic/libraries/architecture/datastore):
 
