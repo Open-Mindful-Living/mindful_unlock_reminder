@@ -1,5 +1,6 @@
 package com.mindful.unlock.reminder.ui
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,9 +36,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.mindful.unlock.reminder.data.UserPreferences
 import com.mindful.unlock.reminder.data.UserPreferencesRepository
+import com.mindful.unlock.reminder.service.UnlockMonitorService
 import com.mindful.unlock.reminder.util.ReminderFrequency
 import kotlinx.coroutines.launch
 
@@ -47,6 +51,7 @@ fun MainScreen(
     repository: UserPreferencesRepository,
     notificationPermissionGranted: State<Boolean>
 ) {
+    val context = LocalContext.current
     val prefs by repository.userPreferencesFlow.collectAsState(initial = UserPreferences())
     val scope = rememberCoroutineScope()
 
@@ -170,6 +175,12 @@ fun MainScreen(
                         repository.setReminderEnabled(isEnabled)
                         repository.setReminderMessage(message)
                         repository.setReminderFrequency(frequency.key)
+                    }
+                    val serviceIntent = Intent(context, UnlockMonitorService::class.java)
+                    if (isEnabled) {
+                        ContextCompat.startForegroundService(context, serviceIntent)
+                    } else {
+                        context.stopService(serviceIntent)
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
