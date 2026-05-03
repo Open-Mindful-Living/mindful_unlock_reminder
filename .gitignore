@@ -1,0 +1,21 @@
+# Android build outputs
+/build/
+/app/build/
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Local config
+local.properties
+*.iml
+.idea/
+*.DS_Store
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
